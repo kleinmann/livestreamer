@@ -1,6 +1,9 @@
 from requests import Session, __build__ as requests_version
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
+from sys import platform
+
+import certifi
 
 try:
     from requests.packages.urllib3.util import Timeout
@@ -114,6 +117,10 @@ class HTTPSession(Session):
         schema = kwargs.pop("schema", None)
         session = kwargs.pop("session", None)
         timeout = kwargs.pop("timeout", self.timeout)
+        verify = kwargs.pop("verify", True)
+
+        if platform == "darwin":
+            verify = certifi.where()
 
         if session:
             headers.update(session.headers)
@@ -125,6 +132,7 @@ class HTTPSession(Session):
                                   params=params,
                                   timeout=timeout,
                                   proxies=proxies,
+                                  verify=verify,
                                   *args, **kwargs)
             if raise_for_status and res.status_code not in acceptable_status:
                 res.raise_for_status()
